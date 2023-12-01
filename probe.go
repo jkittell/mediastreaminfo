@@ -56,8 +56,6 @@ func getContentInfo(content *StreamInfo) {
 			for i := 0; i < streams.Length(); i++ {
 				str := streams.Lookup(i)
 				info := probe(str.File)
-				//Name: str.Name,
-				//Info: *data,
 				strInfo := ABRStreamInfo{
 					Name:    str.Name,
 					Ffprobe: *info,

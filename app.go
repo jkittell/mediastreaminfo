@@ -68,27 +68,27 @@ func getContents(c *gin.Context) {
 
 // postContents adds content from JSON received in the request body.
 func postContents(c *gin.Context) {
-	newContent := &StreamInfo{
+	newStreamInfo := &StreamInfo{
 		Id:            uuid.New().String(),
 		URL:           "",
-		ABRStreamInfo: array.New[ABRStreamInfo](),
+		ABRStreamInfo: nil,
 		Status:        "queued",
 		StartTime:     time.Now().UTC(),
 		EndTime:       time.Time{},
 	}
 
 	// Call BindJSON to bind the received JSON to
-	// newContent.
-	if err := c.BindJSON(&newContent); err != nil {
+	// newStreamInfo.
+	if err := c.BindJSON(&newStreamInfo); err != nil {
 		log.Println(err)
 		return
 	}
 
 	// Add the new content to the array.
 	getInstance()
-	contents.Database.Push(newContent)
-	c.JSON(http.StatusCreated, newContent)
-	go getContentInfo(newContent)
+	contents.Database.Push(newStreamInfo)
+	c.JSON(http.StatusCreated, newStreamInfo)
+	go getContentInfo(newStreamInfo)
 }
 
 // getContentByID locates the content whose ID value matches the id
