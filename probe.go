@@ -31,8 +31,8 @@ func probe(path string) *ffprobe.ProbeData {
 	return data
 }
 
-func getContentInfo(content *content) {
-	results := array.New[StreamInfo]()
+func getContentInfo(content *StreamInfo) {
+	results := array.New[ABRStreamInfo]()
 	// verify ffprobe is available
 	_, err := exec.LookPath("ffprobe")
 	if err != nil {
@@ -58,14 +58,14 @@ func getContentInfo(content *content) {
 				info := probe(str.File)
 				//Name: str.Name,
 				//Info: *data,
-				strInfo := StreamInfo{
+				strInfo := ABRStreamInfo{
 					Name:    str.Name,
 					Ffprobe: *info,
 				}
 				results.Push(strInfo)
 			}
 
-			content.StreamInfo = results
+			content.Ffprobe = results
 			content.Status = "completed"
 		} else {
 			log.Println("no streams found", nil)

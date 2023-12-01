@@ -4,26 +4,33 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jkittell/array"
+	"gopkg.in/vansante/go-ffprobe.v2"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 )
 
-// content represents data about a video/audio stream.
-type content struct {
-	Id         string                   `json:"id"`
-	URL        string                   `json:"url"`
-	StreamInfo *array.Array[StreamInfo] `json:"info"`
-	Status     string                   `json:"status"`
-	StartTime  time.Time                `json:"start_time"`
-	EndTime    time.Time                `json:"end_time"`
+// ABRStreamInfo represents data about an ABR variant stream.
+type ABRStreamInfo struct {
+	Name    string            `json:"name"`
+	Ffprobe ffprobe.ProbeData `json:"ffprobe"`
+}
+
+// StreamInfo represents data about a video/audio stream.
+type StreamInfo struct {
+	Id        string                      `json:"id"`
+	URL       string                      `json:"url"`
+	Ffprobe   *array.Array[ABRStreamInfo] `json:"info"`
+	Status    string                      `json:"status"`
+	StartTime time.Time                   `json:"start_time"`
+	EndTime   time.Time                   `json:"end_time"`
 }
 
 var lock = &sync.Mutex{}
 
 type db struct {
-	Database *array.Array[*content]
+	Database *array.Array[*StreamInfo]
 }
 
 // contents array to store contents data.
@@ -35,7 +42,7 @@ func getInstance() db {
 		defer lock.Unlock()
 		if contents.Database == nil {
 			log.Println("creating new contents database")
-			contents.Database = array.New[*content]()
+			contents.Database = array.New[*StreamInfo]()
 		}
 	}
 	return contents
@@ -61,13 +68,13 @@ func getContents(c *gin.Context) {
 
 // postContents adds content from JSON received in the request body.
 func postContents(c *gin.Context) {
-	newContent := &content{
-		Id:         uuid.New().String(),
-		URL:        "",
-		StreamInfo: array.New[StreamInfo](),
-		Status:     "queued",
-		StartTime:  time.Now().UTC(),
-		EndTime:    time.Time{},
+	newContent := &StreamInfo{
+		Id:        uuid.New().String(),
+		URL:       "",
+		Ffprobe:   array.New[ABRStreamInfo](),
+		Status:    "queued",
+		StartTime: time.Now().UTC(),
+		EndTime:   time.Time{},
 	}
 
 	// Call BindJSON to bind the received JSON to
