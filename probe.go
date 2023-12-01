@@ -65,7 +65,7 @@ func getContentInfo(content *StreamInfo) {
 				results.Push(strInfo)
 			}
 
-			content.Ffprobe = results
+			content.ABRStreamInfo = results
 			content.Status = "completed"
 		} else {
 			log.Println("no streams found", nil)

@@ -19,12 +19,12 @@ type ABRStreamInfo struct {
 
 // StreamInfo represents data about a video/audio stream.
 type StreamInfo struct {
-	Id        string                      `json:"id"`
-	URL       string                      `json:"url"`
-	Ffprobe   *array.Array[ABRStreamInfo] `json:"info"`
-	Status    string                      `json:"status"`
-	StartTime time.Time                   `json:"start_time"`
-	EndTime   time.Time                   `json:"end_time"`
+	Id            string                      `json:"id"`
+	URL           string                      `json:"url"`
+	ABRStreamInfo *array.Array[ABRStreamInfo] `json:"abr_stream_info"`
+	Status        string                      `json:"status"`
+	StartTime     time.Time                   `json:"start_time"`
+	EndTime       time.Time                   `json:"end_time"`
 }
 
 var lock = &sync.Mutex{}
@@ -69,12 +69,12 @@ func getContents(c *gin.Context) {
 // postContents adds content from JSON received in the request body.
 func postContents(c *gin.Context) {
 	newContent := &StreamInfo{
-		Id:        uuid.New().String(),
-		URL:       "",
-		Ffprobe:   array.New[ABRStreamInfo](),
-		Status:    "queued",
-		StartTime: time.Now().UTC(),
-		EndTime:   time.Time{},
+		Id:            uuid.New().String(),
+		URL:           "",
+		ABRStreamInfo: array.New[ABRStreamInfo](),
+		Status:        "queued",
+		StartTime:     time.Now().UTC(),
+		EndTime:       time.Time{},
 	}
 
 	// Call BindJSON to bind the received JSON to
