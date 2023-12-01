@@ -32,7 +32,7 @@ func probe(path string) *ffprobe.ProbeData {
 }
 
 func getContentInfo(content *content) {
-	probeData := array.New[ffprobe.ProbeData]()
+	probeData := array.New[StreamInfo]()
 	// verify ffprobe is available
 	_, err := exec.LookPath("ffprobe")
 	if err != nil {
@@ -56,8 +56,13 @@ func getContentInfo(content *content) {
 			for i := 0; i < streams.Length(); i++ {
 				str := streams.Lookup(i)
 				data := probe(str.File)
-				probeData.Push(*data)
+				info := StreamInfo{
+					Name: str.Name,
+					Info: *data,
+				}
+				probeData.Push(info)
 			}
+
 			content.Info = probeData
 			content.Status = "completed"
 		} else {

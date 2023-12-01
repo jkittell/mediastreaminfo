@@ -11,14 +11,19 @@ import (
 	"time"
 )
 
+type StreamInfo struct {
+	Name string            `json:"name"`
+	Info ffprobe.ProbeData `json:"info"`
+}
+
 // content represents data about a video/audio stream.
 type content struct {
-	Id        string                          `json:"id"`
-	URL       string                          `json:"url"`
-	Info      *array.Array[ffprobe.ProbeData] `json:"info"`
-	Status    string                          `json:"status"`
-	StartTime time.Time                       `json:"start_time"`
-	EndTime   time.Time                       `json:"end_time"`
+	Id        string                   `json:"id"`
+	URL       string                   `json:"url"`
+	Info      *array.Array[StreamInfo] `json:"info"`
+	Status    string                   `json:"status"`
+	StartTime time.Time                `json:"start_time"`
+	EndTime   time.Time                `json:"end_time"`
 }
 
 var lock = &sync.Mutex{}
@@ -65,7 +70,7 @@ func postContents(c *gin.Context) {
 	newContent := &content{
 		Id:        uuid.New().String(),
 		URL:       "",
-		Info:      array.New[ffprobe.ProbeData](),
+		Info:      array.New[StreamInfo](),
 		Status:    "queued",
 		StartTime: time.Now().UTC(),
 		EndTime:   time.Time{},
