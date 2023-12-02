@@ -30,7 +30,7 @@ type StreamInfo struct {
 var lock = &sync.Mutex{}
 
 type db struct {
-	Database *array.Array[*StreamInfo]
+	Database *array.Array[StreamInfo]
 }
 
 // contents array to store contents data.
@@ -42,7 +42,7 @@ func getInstance() db {
 		defer lock.Unlock()
 		if contents.Database == nil {
 			log.Println("creating new contents database")
-			contents.Database = array.New[*StreamInfo]()
+			contents.Database = array.New[StreamInfo]()
 		}
 	}
 	return contents
@@ -68,27 +68,28 @@ func getContents(c *gin.Context) {
 
 // postContents adds content from JSON received in the request body.
 func postContents(c *gin.Context) {
-	newStreamInfo := &StreamInfo{
+	streamInfo := StreamInfo{
 		Id:            uuid.New().String(),
 		URL:           "",
 		ABRStreamInfo: nil,
-		Status:        "queued",
+		Status:        "started",
 		StartTime:     time.Now().UTC(),
 		EndTime:       time.Time{},
 	}
 
 	// Call BindJSON to bind the received JSON to
 	// newStreamInfo.
-	if err := c.BindJSON(&newStreamInfo); err != nil {
+	if err := c.BindJSON(&streamInfo); err != nil {
 		log.Println(err)
 		return
 	}
 
 	// Add the new content to the array.
 	getInstance()
-	contents.Database.Push(newStreamInfo)
-	c.JSON(http.StatusCreated, newStreamInfo)
-	go getContentInfo(newStreamInfo)
+	contents.Database.Push(streamInfo)
+	c.JSON(http.StatusCreated, streamInfo)
+
+	go getContentInfo(streamInfo)
 }
 
 // getContentByID locates the content whose ID value matches the id

@@ -31,22 +31,29 @@ func probe(path string) *ffprobe.ProbeData {
 	return data
 }
 
-func getContentInfo(content *StreamInfo) {
-	results := array.New[ABRStreamInfo]()
+func getStreamInfo(content StreamInfo) (StreamInfo, error) {
+	results := StreamInfo{
+		Id:            content.Id,
+		URL:           content.URL,
+		ABRStreamInfo: array.New[ABRStreamInfo](),
+		Status:        content.Status,
+		StartTime:     content.StartTime,
+		EndTime:       content.EndTime,
+	}
+
 	// verify ffprobe is available
 	_, err := exec.LookPath("ffprobe")
 	if err != nil {
 		log.Println("ffprobe is not available", err)
-		content.Status = "error"
-		content.EndTime = time.Now().UTC()
-		return
+		results.Status = "error"
+		results.EndTime = time.Now().UTC()
+		return results, err
 	} else if strings.HasSuffix(content.URL, ".mpd") {
 		log.Println("skip ffprobe for dash", nil)
-		content.Status = "skipped"
-		content.EndTime = time.Now().UTC()
-		return
+		results.Status = "skipped"
+		results.EndTime = time.Now().UTC()
+		return results, nil
 	} else {
-		content.Status = "processing"
 		// specify directory to download segments
 		dir := path.Join("/tmp", uuid.New().String())
 		// download segments to mp4
@@ -60,19 +67,33 @@ func getContentInfo(content *StreamInfo) {
 					Name:    str.Name,
 					Ffprobe: *info,
 				}
-				results.Push(strInfo)
+				results.ABRStreamInfo.Push(strInfo)
 			}
-
-			content.ABRStreamInfo = results
-			content.Status = "completed"
+			results.Status = "completed"
 		} else {
 			log.Println("no streams found", nil)
-			content.Status = "error"
+			results.Status = "error"
+			return results, nil
 		}
 		err = os.RemoveAll(dir)
 		if err != nil {
 			log.Println("unable to remove downloaded segments")
 		}
-		content.EndTime = time.Now().UTC()
+		results.EndTime = time.Now().UTC()
+	}
+	return results, nil
+}
+
+func getContentInfo(content StreamInfo) {
+	streamInfo, err := getStreamInfo(content)
+	if err != nil {
+		log.Println(err)
+	}
+
+	for i := 0; i < contents.Database.Length(); i++ {
+		info := contents.Database.Lookup(i)
+		if info.Id == streamInfo.Id {
+			contents.Database.Set(i, streamInfo)
+		}
 	}
 }
