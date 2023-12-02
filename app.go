@@ -2,7 +2,6 @@ package mediastreaminfo
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jkittell/array"
@@ -12,8 +11,6 @@ import (
 	"time"
 )
 
-var debug bool
-
 var lock = &sync.Mutex{}
 
 type db struct {
@@ -22,19 +19,6 @@ type db struct {
 
 // contents array to store contents data.
 var contents db
-
-func Debug(b bool) {
-	debug = b
-}
-
-func debugMsg(format string, a ...any) {
-	if !debug {
-		return
-	}
-
-	msg := fmt.Sprintf(format, a)
-	color.Magenta(msg)
-}
 
 func getInstance() db {
 	if contents.Database == nil {

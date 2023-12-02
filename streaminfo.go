@@ -102,7 +102,7 @@ func getStreamInfo(content StreamInfo) (StreamInfo, error) {
 }
 
 func getContentInfo(content StreamInfo) {
-	debugMsg("%s start getting stream info", content.Id)
+	log.Printf("%s start getting stream info", content.Id)
 	start := time.Now()
 	streamInfo, err := getStreamInfo(content)
 	if err != nil {
@@ -117,6 +117,6 @@ func getContentInfo(content StreamInfo) {
 	}
 
 	end := time.Now()
-	debugMsg("%s done getting stream info", content.Id)
-	debugMsg("%s elapsed time %s", content.Id, end.Sub(start).String())
+	log.Printf("%s done getting stream info", content.Id)
+	log.Printf("%s elapsed time %s", content.Id, end.Sub(start).String())
 }
