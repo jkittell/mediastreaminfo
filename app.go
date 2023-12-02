@@ -1,31 +1,18 @@
 package mediastreaminfo
 
 import (
+	"fmt"
+	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jkittell/array"
-	"gopkg.in/vansante/go-ffprobe.v2"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 )
 
-// ABRStreamInfo represents data about an ABR variant stream.
-type ABRStreamInfo struct {
-	Name    string            `json:"name"`
-	Ffprobe ffprobe.ProbeData `json:"ffprobe"`
-}
-
-// StreamInfo represents data about a video/audio stream.
-type StreamInfo struct {
-	Id            string                      `json:"id"`
-	URL           string                      `json:"url"`
-	ABRStreamInfo *array.Array[ABRStreamInfo] `json:"abr_stream_info"`
-	Status        string                      `json:"status"`
-	StartTime     time.Time                   `json:"start_time"`
-	EndTime       time.Time                   `json:"end_time"`
-}
+var debug bool
 
 var lock = &sync.Mutex{}
 
@@ -36,28 +23,37 @@ type db struct {
 // contents array to store contents data.
 var contents db
 
+func Debug(b bool) {
+	debug = b
+}
+
+func debugMsg(format string, a ...any) {
+	if !debug {
+		return
+	}
+
+	msg := fmt.Sprintf(format, a)
+	color.Magenta(msg)
+}
+
 func getInstance() db {
 	if contents.Database == nil {
 		lock.Lock()
 		defer lock.Unlock()
 		if contents.Database == nil {
-			log.Println("creating new contents database")
 			contents.Database = array.New[StreamInfo]()
 		}
 	}
 	return contents
 }
 
-func Start() {
+func StartService(port int) error {
 	router := gin.Default()
 	router.GET("/contents", getContents)
 	router.GET("/contents/:id", getContentByID)
 	router.POST("/contents", postContents)
 
-	err := router.Run(":3000")
-	if err != nil {
-		log.Println(err)
-	}
+	return router.Run(fmt.Sprintf(":%d", port))
 }
 
 // getContents responds with the list of all contents as JSON.

@@ -14,6 +14,22 @@ import (
 	"time"
 )
 
+// ABRStreamInfo represents data about an ABR variant stream.
+type ABRStreamInfo struct {
+	Name    string            `json:"name"`
+	Ffprobe ffprobe.ProbeData `json:"ffprobe"`
+}
+
+// StreamInfo represents data about a video/audio stream.
+type StreamInfo struct {
+	Id            string                      `json:"id"`
+	URL           string                      `json:"url"`
+	ABRStreamInfo *array.Array[ABRStreamInfo] `json:"abr_stream_info"`
+	Status        string                      `json:"status"`
+	StartTime     time.Time                   `json:"start_time"`
+	EndTime       time.Time                   `json:"end_time"`
+}
+
 // probe mp4 file with ffprobe
 func probe(path string) *ffprobe.ProbeData {
 	ctx, cancelFn := context.WithTimeout(context.Background(), 5*time.Second)
@@ -28,6 +44,7 @@ func probe(path string) *ffprobe.ProbeData {
 	if err != nil {
 		log.Printf("Error getting data: %v", err)
 	}
+
 	return data
 }
 
@@ -85,6 +102,8 @@ func getStreamInfo(content StreamInfo) (StreamInfo, error) {
 }
 
 func getContentInfo(content StreamInfo) {
+	debugMsg("%s start getting stream info", content.Id)
+	start := time.Now()
 	streamInfo, err := getStreamInfo(content)
 	if err != nil {
 		log.Println(err)
@@ -96,4 +115,8 @@ func getContentInfo(content StreamInfo) {
 			contents.Database.Set(i, streamInfo)
 		}
 	}
+
+	end := time.Now()
+	debugMsg("%s done getting stream info", content.Id)
+	debugMsg("%s elapsed time %s", content.Id, end.Sub(start).String())
 }
