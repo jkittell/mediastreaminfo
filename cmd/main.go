@@ -44,7 +44,7 @@ func main() {
 	router.GET("/contents/:id", getContentByID)
 	router.POST("/contents", postContents)
 
-	err := router.Run("127.0.0.1:3000")
+	err := router.Run(":3000")
 	if err != nil {
 		log.Fatal(err)
 	}
