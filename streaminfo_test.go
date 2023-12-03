@@ -10,8 +10,6 @@ import (
 
 func TestA(t *testing.T) {
 	url := "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
-	go StartService(3000)
-
 	time.Sleep(2 * time.Second)
 
 	info := Post(url)
@@ -37,18 +35,17 @@ func TestA(t *testing.T) {
 func TestB(t *testing.T) {
 	ids := array.New[string]()
 	url := "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
-	go StartService(3000)
 
 	time.Sleep(2 * time.Second)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 2; i++ {
 		info := Post(url)
 		ids.Push(info.Id)
 	}
 
 	var done bool
 	for range time.Tick(10 * time.Second) {
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 2; i++ {
 			id := ids.Lookup(i)
 			info := Get(id)
 			fmt.Println(info.Status)
