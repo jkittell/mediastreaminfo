@@ -1,10 +1,12 @@
 package mediastreaminfo
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jkittell/array"
+	"github.com/jkittell/toolbox"
 	"log"
 	"net/http"
 	"sync"
@@ -38,6 +40,69 @@ func StartService(port int) error {
 	router.POST("/contents", postContents)
 
 	return router.Run(fmt.Sprintf(":%d", port))
+}
+
+func Get(id string) StreamInfo {
+	var info StreamInfo
+	apiURL := fmt.Sprintf("http://127.0.0.1:3000/contents/%s", id)
+	status, res, err := toolbox.SendRequest(toolbox.GET, apiURL, "", nil)
+	if err != nil {
+		log.Println(err)
+		return info
+	}
+
+	if status != 200 {
+		log.Printf("get response code: %d", status)
+	}
+
+	err = json.Unmarshal(res, &info)
+	if err != nil {
+		log.Println(err)
+	}
+	return info
+}
+
+func GetAll() *array.Array[StreamInfo] {
+	infos := array.New[StreamInfo]()
+	apiURL := "http://127.0.0.1:3000/contents"
+	status, res, err := toolbox.SendRequest(toolbox.GET, apiURL, "", nil)
+	if err != nil {
+		log.Println(err)
+		return infos
+	}
+
+	if status != 200 {
+		log.Printf("get response code: %d", status)
+	}
+
+	err = json.Unmarshal(res, &infos)
+	if err != nil {
+		log.Println(err)
+	}
+	return infos
+}
+
+func Post(url string) StreamInfo {
+	var info StreamInfo
+	apiURL := "http://127.0.0.1:3000/contents"
+
+	data, _ := json.Marshal(map[string]string{"url": url})
+	status, res, err := toolbox.SendRequest(toolbox.POST, apiURL, string(data), nil)
+	if err != nil {
+		log.Println(err)
+		return info
+	}
+
+	if status != 201 {
+		log.Printf("post response code: %d\n", status)
+		return info
+	}
+
+	err = json.Unmarshal(res, &info)
+	if err != nil {
+		log.Println(err)
+	}
+	return info
 }
 
 // getContents responds with the list of all contents as JSON.
