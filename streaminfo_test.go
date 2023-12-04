@@ -8,21 +8,23 @@ import (
 	"time"
 )
 
+var host = "127.0.0.1"
+
 func TestA(t *testing.T) {
 	url := "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8"
 	time.Sleep(2 * time.Second)
 
-	info := Post(url)
+	info := Post(host, url)
 
 	for range time.Tick(10 * time.Second) {
-		i := Get(info.Id)
+		i := Get(host, info.Id)
 		fmt.Println(i.Status)
 		if i.Status == "completed" {
 			break
 		}
 	}
 
-	info = Get(info.Id)
+	info = Get(host, info.Id)
 	fmt.Println(info.ABRStreamInfo.Length())
 	data, err := json.MarshalIndent(info, "", "    ")
 	if err != nil {
@@ -39,7 +41,7 @@ func TestB(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	for i := 0; i < 2; i++ {
-		info := Post(url)
+		info := Post(host, url)
 		ids.Push(info.Id)
 	}
 
@@ -47,7 +49,7 @@ func TestB(t *testing.T) {
 	for range time.Tick(10 * time.Second) {
 		for i := 0; i < 2; i++ {
 			id := ids.Lookup(i)
-			info := Get(id)
+			info := Get(host, id)
 			fmt.Println(info.Status)
 			if info.Status == "completed" {
 				done = true
@@ -58,7 +60,7 @@ func TestB(t *testing.T) {
 		}
 	}
 
-	all := GetAll()
+	all := GetAll(host)
 	data, err := json.MarshalIndent(all, "", "    ")
 	if err != nil {
 		fmt.Println(err)

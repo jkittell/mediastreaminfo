@@ -26,9 +26,9 @@ type StreamInfo struct {
 	EndTime       time.Time                   `json:"end_time"`
 }
 
-func Get(id string) StreamInfo {
+func Get(host, id string) StreamInfo {
 	var info StreamInfo
-	apiURL := fmt.Sprintf("http://127.0.0.1:3000/contents/%s", id)
+	apiURL := fmt.Sprintf("http://%s:3000/contents/%s", host, id)
 	status, res, err := toolbox.SendRequest(toolbox.GET, apiURL, "", nil)
 	if err != nil {
 		log.Println(err)
@@ -46,9 +46,9 @@ func Get(id string) StreamInfo {
 	return info
 }
 
-func GetAll() *array.Array[StreamInfo] {
+func GetAll(host string) *array.Array[StreamInfo] {
 	infos := array.New[StreamInfo]()
-	apiURL := "http://127.0.0.1:3000/contents"
+	apiURL := fmt.Sprintf("http://%s:3000/contents", host)
 	status, res, err := toolbox.SendRequest(toolbox.GET, apiURL, "", nil)
 	if err != nil {
 		log.Println(err)
@@ -66,9 +66,9 @@ func GetAll() *array.Array[StreamInfo] {
 	return infos
 }
 
-func Post(url string) StreamInfo {
+func Post(host, url string) StreamInfo {
 	var info StreamInfo
-	apiURL := "http://127.0.0.1:3000/contents"
+	apiURL := fmt.Sprintf("http://%s:3000/contents", host)
 
 	data, _ := json.Marshal(map[string]string{"url": url})
 	status, res, err := toolbox.SendRequest(toolbox.POST, apiURL, string(data), nil)
